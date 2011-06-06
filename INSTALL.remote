@@ -25,7 +25,17 @@ cat newmachines.txt | \
 cat newmachines.txt | \
     xargs -P0 -n1 -I{} ssh {} 'cd /root/mysqlcluster-test ; git pull'
 
-#install script on repos to pull cluster software
+#remove mysql pull
+cat newmachines.txt | \
+    xargs -P0 -n1 -I{} ssh {} 'cd /root/mysqlcluster-test ; rm -rf mysqlcluster-7.1.13.tar.gz ; rm -rf mysql-cluster-gpl-7.1.13-linux-x86_64-glibc23'
+
+#run install script on repos to pull cluster software
 cat newmachines.txt | \
     xargs -P0 -n1 -I{} ssh {} 'cd /root/mysqlcluster-test ; ./install.sh'
+
+
+#init mysqld database
+cat mysqld.txt | \
+     xargs -P0 -n1 -I{} ssh {} 'cd /root/mysqlcluster-test/mysqlc ; \
+     scripts/mysql_install_db --no-defaults --datadir=$HOME/mysqlcluster-test/my_cluster/mysqld_data/'
 
