@@ -19,3 +19,13 @@ cat newmachines.txt | \
 #clone our repository
 cat newmachines.txt | \
     xargs -P0 -n1 -I{} ssh {} 'cd /root ; git clone git://github.com/guyromm/mysqlcluster-test.git'
+
+
+#update our repo
+cat newmachines.txt | \
+    xargs -P0 -n1 -I{} ssh {} 'cd /root/mysqlcluster-test ; git pull'
+
+#install script on repos to pull cluster software
+cat newmachines.txt | \
+    xargs -P0 -n1 -I{} ssh {} 'cd /root/mysqlcluster-test ; ./install.sh'
+
