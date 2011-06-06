@@ -33,7 +33,18 @@ cat newmachines.txt | \
 cat newmachines.txt | \
     xargs -P0 -n1 -I{} ssh {} 'cd /root/mysqlcluster-test ; ./install.sh'
 
+#generate a local hosts file from the secondary interfaces
+cat newmachines.txt | \
+    xargs -P0 -n1 -I{} ssh {} \
+    "annotate-output +{} ifconfig eth1 | grep 'inet addr'" | awk '{print "\""$4" "$1"\""}' | sed s/^\"addr:// | sed s/\"$// > hosts
 
+#install the hosts file on each remote machine
+cat newmachines.txt | xargs -P0 -n1 -I{} scp hosts {}:~/mysqlcluster-test/
+cat newmachines.txt | \
+    xargs -P0 -n1 -I{} ssh {} 'echo "" >> /etc/hosts ; \
+    echo "#extra:" >> /etc/hosts ; \
+    cat /root/mysqlcluster-test/hosts | egrep -v `cat /etc/hostname`  | cat >> /etc/hosts'
+	     	    
 #init mysqld database
 cat mysqld.txt | \
      xargs -P0 -n1 -I{} ssh {} 'cd /root/mysqlcluster-test/mysqlc ; \
