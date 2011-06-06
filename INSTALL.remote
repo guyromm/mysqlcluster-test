@@ -1,10 +1,15 @@
 #host listings:
 #mysqlctr.txt mysqld.txt datanodes.txt
 #newmachines.txt <-- fresh installs
-#instantiate machines via cloudservers
 
+
+#drop machines
 cat newmachines.txt | \
-    xargs -P0 -n1 -I{} cloudservers --user $APIUSER --apikey $APIKEY boot   --image 69  --key ~/.ssh/authorized_keys2 {}
+    xargs -P0 -n1 -I{} cloudservers --username $APIUSER --apikey $APIKEY delete {}
+
+#instantiate machines via cloudservers
+cat newmachines.txt | \
+    xargs -P0 -n1 -I{} cloudservers --user $APIUSER --apikey $APIKEY boot   --image 69 --flavor 2  --key ~/.ssh/authorized_keys2 {}
 
 #install known_hosts on all machines
 cat newmachines.txt | xargs -P0 -n1 -I{} scp -o StrictHostKeyChecking=no known_hosts {}:~/.ssh/
@@ -13,8 +18,8 @@ cat newmachines.txt | xargs -P0 -n1 -I{} scp -o StrictHostKeyChecking=no known_h
 cat newmachines.txt | \
     xargs -P0 -n1 -I{} ssh {} \
     'apt-get update; \
-    apt-get install -y git-core emacs23-nox git-core screen python-setuptools python-dev telnet devscripts\
-     mysql-cluster-server-5.1 mysql-cluster-client-5.1'
+    apt-get install -y git-core emacs23-nox git-core screen python-setuptools python-dev telnet devscripts'
+
 
 #clone our repository
 cat newmachines.txt | \
@@ -50,3 +55,31 @@ cat mysqld.txt | \
      xargs -P0 -n1 -I{} ssh {} 'cd /root/mysqlcluster-test/mysqlc ; \
      scripts/mysql_install_db --no-defaults --datadir=$HOME/mysqlcluster-test/my_cluster/mysqld_data/'
 
+#launch ndb_mgmd on mysqlctr
+cat mysqlctr.txt | \
+    xargs -P0 -n1 -I{} ssh {} 'cd ~/mysqlcluster-test/my_cluster/ ; \
+    mkdir -p ndb_data ; \
+    $HOME/mysqlcluster-test/mysqlc/bin/ndb_mgmd \
+     -f ~/mysqlcluster-test/my_cluster/conf/config.ini --ndb-nodeid=40 --configdir=$HOME/mysqlcluster-test/my_cluster/conf/'
+
+#launch ndb data nodes
+cat datanodes.txt | \
+    xargs -P0 -n1 -I{} ssh {} 'cd ~/mysqlcluster-test/my_cluster/ ; \
+    mkdir -p ndb_data ; \
+    ../mysqlc/bin/ndbd -c mysqlctr:1186'
+
+#check running datanodes
+cat datanodes.txt | \
+    xargs -P0 -n1 -I{} ssh {} "ps ax | grep 'ndbd -c' | egrep -v 'grep(.*)ndbd' | annotate-output +{} wc" | egrep -v '(Started|Finished)'
+
+#check ndb_mgm
+ssh mysqlctr mysqlcluster-test/mysqlc/bin/ndb_mgm -e show
+
+
+#start up mysqld
+ssh mysqld 'cd ~/mysqlcluster-test/ ; mysqlc/bin/mysqld --defaults-file=/root/mysqlcluster-test/my_cluster/conf/my.cnf'
+
+#see if mysqld is running
+ssh mysqld "ps aux | grep mysqld"
+
+#install a schema on the db
