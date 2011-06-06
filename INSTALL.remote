@@ -1,0 +1,12 @@
+#host listings:
+#mysqlctr.txt mysqld.txt datanodes.txt
+#newmachines.txt <-- fresh installs
+#instantiate machines via cloudservers
+
+cat newmachines.txt | \
+    xargs -P0 -n1 -I{} cloudservers --user $APIUSER --apikey $APIKEY boot   --image 69  --key ~/.ssh/authorized_keys2 {}
+
+#install known_hosts on all machines
+cat newmachines.txt | xargs -P0 -n1 -I{} scp -o StrictHostKeyChecking=no known_hosts {}:~/.ssh/
+
+#pull our repository
