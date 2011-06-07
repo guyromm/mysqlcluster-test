@@ -28,7 +28,7 @@ cat newmachines.txt | \
 
 
 #update our repo
-cat newmachines.txt | \
+cat datanodes.txt mysqld.txt mysqlctr.txt | \
     xargs -P0 -n1 -I{} ssh {} 'cd /root/mysqlcluster-test ; git pull'
 
 #remove mysql pull
@@ -74,6 +74,16 @@ cat datanodes.txt | \
     xargs -P0 -n1 -I{} ssh {} 'cd ~/mysqlcluster-test/my_cluster/ ; \
     mkdir -p ndb_data ; \
     ../mysqlc/bin/ndbd -c mysqlctr:1186'
+
+#initial ndb data node launch
+cat newmachines.txt | \
+    xargs -P0 -n1 -I{} ssh {} 'cd ~/mysqlcluster-test/my_cluster/ ; \
+    mkdir -p ndb_data ; \
+    ../mysqlc/bin/ndbd --initial -c mysqlctr:1186'
+
+
+#kill ndb data nodes
+cat killnodes | xargs -P0 -n1 -I{} ssh {} 'pkill -f ndbd'
 
 #check running datanodes
 cat datanodes.txt | \
