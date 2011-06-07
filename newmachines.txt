@@ -1,6 +1,2 @@
-mysqld
-mysql1
-mysql2
-mysql3
-mysql4
-mysqlctr
+mysql5
+mysql6

@@ -2,3 +2,5 @@ mysql1
 mysql2
 mysql3
 mysql4
+mysql5
+mysql6

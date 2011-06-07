@@ -4,7 +4,7 @@
 
 
 #drop machines
-cat newmachines.txt | \
+cat delmachines.txt | \
     xargs -P0 -n1 -I{} cloudservers --username $APIUSER --apikey $APIKEY delete {}
 
 #instantiate machines via cloudservers
@@ -40,14 +40,14 @@ cat newmachines.txt | \
     xargs -P0 -n1 -I{} ssh {} 'cd /root/mysqlcluster-test ; ./install.sh'
 
 #generate a local hosts file from the primary interfaces
-cat newmachines.txt | \
+cat datanodes.txt mysqld.txt mysqlctr.txt | \
     xargs -P0 -n1 -I{} ssh {} \
     "annotate-output +{} ifconfig eth0 | grep 'inet addr'" | awk '{print "\""$4" "$1"\""}' | sed s/^\"addr:// | sed s/\"$// > hosts
 echo '127.0.0.1	localhost' >> hosts
 
 #install the hosts file on each remote machine
-cat newmachines.txt | xargs -P0 -n1 -I{} scp hosts {}:~/mysqlcluster-test/
-cat newmachines.txt | \
+cat datanodes.txt mysqld.txt mysqlctr.txt | xargs -P0 -n1 -I{} scp hosts {}:~/mysqlcluster-test/
+cat datanodes.txt mysqld.txt mysqlctr.txt | \
     xargs -P0 -n1 -I{} ssh {} 'echo "" > /etc/hosts ; \
     echo "#extra:" >> /etc/hosts ; \
     cat /root/mysqlcluster-test/hosts| cat >> /etc/hosts' 
@@ -98,3 +98,6 @@ ssh mysqld 'cd ~/mysqlcluster-test ; mysqlc/bin/mysqladmin -uroot -P5000 -hmysql
 ssh mysqlctr mysqlcluster-test/mysqlc/bin/ndb_mgm -e shutdown
 
 #install a schema on the db
+
+#see memory usage
+./usage.sh
