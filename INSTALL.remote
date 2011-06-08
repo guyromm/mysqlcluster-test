@@ -69,6 +69,10 @@ cat mysqlctr.txt | \
     $HOME/mysqlcluster-test/mysqlc/bin/ndb_mgmd \
      -f ~/mysqlcluster-test/my_cluster/conf/config.ini --ndb-nodeid=40 --configdir=$HOME/mysqlcluster-test/my_cluster/conf/'
 
+#erase data from nodes
+cat datanodes.txt | \
+    xargs -P0 -n1 -I{} ssh {} 'rm -rf ~/mysqlcluster-test/my_cluster/ndb_data/*'
+
 #launch ndb data nodes
 cat datanodes.txt | \
     xargs -P0 -n1 -I{} ssh {} 'cd ~/mysqlcluster-test/my_cluster/ ; \
@@ -87,7 +91,7 @@ cat killnodes | xargs -P0 -n1 -I{} ssh {} 'pkill -f ndbd'
 
 #check running datanodes
 cat datanodes.txt | \
-    xargs -P0 -n1 -I{} ssh {} "ps ax | grep 'ndbd -c' | egrep -v 'grep(.*)ndbd' | annotate-output +{} wc" | egrep -v '(Started|Finished)'
+    xargs -P0 -n1 -I{} ssh {} "ps ax | grep 'ndbd -c' | egrep -v 'grep(.*)ndbd' | annotate-output +{} wc -l" | egrep -v '(Started|Finished)'
 
 #check ndb_mgm
 ssh mysqlctr mysqlcluster-test/mysqlc/bin/ndb_mgm -e show
@@ -111,3 +115,14 @@ ssh mysqlctr mysqlcluster-test/mysqlc/bin/ndb_mgm -e shutdown
 
 #see memory usage
 ./usage.sh
+
+#have a look at loads
+cat datanodes.txt mysqlctr.txt mysqld.txt | xargs -P0 -n1 -I{} ssh {} 'annotate-output +{} uptime' | egrep -v '(Started|Finished)'
+
+#queries to check integrity - should all be equal:
+select count(*) from ndb_test;
+select max(id) from ndb_test;
+select sum(f) from (select 1 f from ndb_test) foo;
+
+#should not return results:
+select * from ndb_test where md5(id)<>indexed_id limit 1;
