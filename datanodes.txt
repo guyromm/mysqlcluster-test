@@ -4,3 +4,5 @@ mysql3
 mysql4
 mysql5
 mysql6
+mysql7
+mysql8

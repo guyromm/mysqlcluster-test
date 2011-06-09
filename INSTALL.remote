@@ -28,7 +28,7 @@ cat newmachines.txt | \
 
 
 #update our repo
-cat datanodes.txt mysqld.txt mysqlctr.txt | \
+cat newmachines.txt datanodes.txt mysqld.txt mysqlctr.txt | \
     xargs -P0 -n1 -I{} ssh {} 'cd /root/mysqlcluster-test ; git pull'
 
 #remove mysql pull
@@ -127,3 +127,6 @@ select sum(f) from (select 1 f from ndb_test) foo;
 
 #should not return results:
 select * from ndb_test where md5(id)<>indexed_id limit 1;
+
+#tail the log of data nodes
+cat datanodes.txt | xargs -P0 -n1 -I{} ssh {} 'annotate-output +{} tail -f mysqlcluster-test/my_cluster/ndb_data/ndb_*log' 
