@@ -1,2 +1,2 @@
-mysql5
-mysql6
+mysql7
+mysql8
