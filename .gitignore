@@ -1,3 +1,5 @@
+hosts
+my_cluster/ndb_data
 *~
 *.pyc
 installs.txt
