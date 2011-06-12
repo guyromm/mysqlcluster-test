@@ -131,8 +131,20 @@ select * from ndb_test where md5(id)<>indexed_id limit 1;
 #tail the log of data nodes
 cat datanodes.txt | xargs -P0 -n1 -I{} ssh {} 'annotate-output +{} tail -f mysqlcluster-test/my_cluster/ndb_data/ndb_*log' 
 
-#restore data nodes from backup
-cat datanodes.txt | xargs -P0 -n1 -I{} ssh {} '\
+#restore data nodes from backup, after starting nodes with --initial
+
+#1. remove existing data files
+cat datanodes.txt | xargs -P0 -n1 -I{} ssh {} 'cd mysqlcluster-test ; rm -rf ./my_cluster/ndb_data/ndb_`hostname | sed s/mysql//`_fs'
+
+#2. restart mgmd & nodes
+ 
+#3. restore schema
+ssh mysql1 '\
     cd mysqlcluster-test ; \
-    mysqlc/bin/ndb_restore -c mysqlctr:1186 -n `hostname | sed s/mysql//` --backupid=1 --backup-path=my_cluster/ndb_data/BACKUP/BACKUP-1/
+    mysqlc/bin/ndb_restore -m -c mysqlctr:1186 -n `hostname | sed s/mysql//` --backupid=1 --backup-path=my_cluster/ndb_data/BACKUP/BACKUP-1/
+    '
+#4. restore data (exclude 7,8 for now)
+cat datanodes.txt | egrep -v '(mysql8|mysql7)' | xargs -P3 -n1 -I{} ssh {} '\
+    cd mysqlcluster-test ; \
+    mysqlc/bin/ndb_restore -r -c mysqlctr:1186 -n `hostname | sed s/mysql//` --backupid=1 --backup-path=my_cluster/ndb_data/BACKUP/BACKUP-1/
     '

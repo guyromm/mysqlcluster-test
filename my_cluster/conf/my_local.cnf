@@ -1,0 +1,13 @@
+[mysqld]
+#ndbcluster
+datadir=/home/milez/mysqlcluster-test/my_cluster/mysqld_data
+basedir=/home/milez/mysqlcluster-test/mysqlc
+port=5000
+socket=/home/milez/mysqlcluster-test/my_cluster/mysql.sock
+user=root
+
+#ndb-connectstring=mysqlctr:1186  # location of management server
+#ndb-mgmd-host=mysqlctr
+#ndb-nodeid=50
+
+[mysql_cluster]

@@ -73,9 +73,9 @@ create table if not exists ndb_test (
        field_8 varchar(8) not null,
        field_12 varchar(12) not null,
        field_16 varchar(16) not null,
-       field_30 varchar(20) not null,
-       field_34 varchar(24) not null,
-       field_38 varchar(28) not null,
+       field_20 varchar(20) not null,
+       field_24 varchar(24) not null,
+       field_28 varchar(28) not null,
        field_32 varchar(32) not null,
        field_36 varchar(36) not null,
        field_40 varchar(40) not null

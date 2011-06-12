@@ -69,7 +69,7 @@ def insappend(ins,nowrite=False):
     fp.write('var data = %s;'%json.dumps(obj))
     fp.close()
 
-db=MySQLdb.connect(port=5000,host='127.0.0.1',db="clusterdb")
+db=MySQLdb.connect(user='root',port=5000,host='127.0.0.1',db="clusterdb")
 
 def insert(amt=100000,selnum=1000,byid=False,nowrite=False):
     global db
